@@ -3055,6 +3055,13 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 		}
 
 	}
+	else if(data->state == BUTTON_STATE_MENU_OPEN) {
+		if (event->type==LEFTMOUSE && event->val==KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			data->cancel= 1;
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
 
 	return WM_UI_HANDLER_CONTINUE;
 }
@@ -5776,6 +5783,10 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 				}
 				break;
 			}
+
+			default:
+				ui_do_button(C, block, but, event);
+				break;
 		}
 
 		ui_do_button(C, block, but, event);
