@@ -5,9 +5,6 @@ Blender, Traditional Interface
 
 [Blender](http://blender.org) is a free open source 3D content creation suite.
 
-This source code tree fork hosted on Github is kept up to
-date with the latest stable release version of Blender found on their [Source Code Download Page](http://www.blender.org/download/source-code/).
-
 This branch is my work on a "traditional" interface to Blender, that is more accessible
 to users of traditional 3d art software such as Maya. Blender is rather avant-garde
 and new in its user interface innovations, but personally I find a lot of its
@@ -15,6 +12,9 @@ mechanisms to be frustrating. But at the same time, Blender has a unique paradig
 user interaction that I want to preserve. My goals are not to make Blender behave exactly
 like Maya, but rather to make the interface more intuitive for new users coming from
 other tools.
+
+This source code tree fork hosted on Github is kept up to
+date with the latest stable release version of Blender found on their [Source Code Download Page](http://www.blender.org/download/source-code/).
 
 Goals
 -----
@@ -51,12 +51,12 @@ To-do List
 
 ### Unexpected Behavior
 
-* When the mouse is over a menu and the user clicks on another menu, it doesn�t open the other menu.
+* When the mouse is over a menu and the user clicks on another menu, it doesn't open the other menu.
 * ~~Clicking on the same menu again does not close it.~~
 * If a button panel is too small the user has to scroll it.
 * If the user is in grab/scale/rotate mode and presses the button again, it does nothing.
 * If the user holds down a grab/scale/rotate tool, letting go does not finish the task.
-* There is a + to open the �n� control panel but no - to close it.
+* There is a + to open the "n" control panel but no - to close it.
 * Clicking in empty space does not unselect.
 * Right click to select is default. Left click should select.
 * Right click should bring up a context menu.
@@ -67,34 +67,34 @@ To-do List
 * No BEVEL TOOL
 * Right clicking does not offer delete and sometimes rename
 * Primary selection color is white, invisible when dealing with white things.
-* Click-dragging on an object�s center sometimes moves the object behind it instead.
+* Click-dragging on an object's center sometimes moves the object behind it instead.
 * No scale management with the dolly view tool. Getting closer to an object should slow it down.
 * Gray out non-selected objects while in edit mode.
 * Deleting an edge deletes its face too.
-* Copy is broken, right clicking on a text area doesn�t give a menu to copy-paste.
-* Ctrl-s shouldn�t prompt to overwrite.
+* Copy is broken, right clicking on a text area doesn't give a menu to copy-paste.
+* Ctrl-s shouldn't prompt to overwrite.
 * While the file dialog is open, pressing the X on the window should close the file dialog. (Or there should be another X)
-* Saving user preferences saves over the default .blend that�s loaded when you choose �new� from the menu
+* Saving user preferences saves over the default .blend that's loaded when you choose "new" from the menu
 * Clicking a second time on an object selects the object behind it
 * Selecting a poly/edge/vert in uv should highlight it in 3d and vice versa
 * Complete freezeup while generating AO, non-obvious progress bar
 * No highlight while hovering the mouse over a vert/edge/face/tool handle
 * No way to move something in two dimensions but not a third without keyboard shortcuts
-* If only one texture layer is active and it is a multiply/overlay/etc layer, don�t black everything out.
+* If only one texture layer is active and it is a multiply/overlay/etc layer, don't black everything out.
 * Dragging a separator all the way over does not close it.
 * If the user is looking through a camera, the rotate and zoom controls should control the camera directly.
 * Canceling extrude should leave the mesh unchanged and not leave duplicate geometry.
 
 ### Workflow Improvement Wishlist
 
-* Single-button press method to switch between object selection, vertex selection, edge selection, face selection. No �Object Mode� separate from �Edit Mode�
-* Place the �Mesh Tools� toolbar in floating buttons over the 3d view.
-* Don�t open a window when delete is pressed. Just delete whatever is selected.
+* Single-button press method to switch between object selection, vertex selection, edge selection, face selection. No "Object Mode" separate from "Edit Mode"
+* Place the "Mesh Tools" toolbar in floating buttons over the 3d view.
+* Don't open a window when delete is pressed. Just delete whatever is selected.
 * Default to GLSL mode?
 * A way to cull back faces in GLSL mode
 * A minimum ambient light option for GLSL mode
 * Remove the need to uncheck textures when generating environment maps?
-* AO maps aren�t that good. Port over some of SMAK�s code?
+* AO maps aren't that good. Port over some of SMAK's code?
 * A render from 3d view position command
 * Turning off render of a lamp should stop if from lighting the 3d view.
 * Overreliance on middle mouse button.
