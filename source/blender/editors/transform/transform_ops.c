@@ -73,6 +73,7 @@ static char OP_MIRROR[] = "TRANSFORM_OT_mirror";
 static char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
 static char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
 static char OP_SEQ_SLIDE[] = "TRANSFORM_OT_seq_slide";
+static char OP_CONTEXT[] = "TRANSFORM_OT_context";
 
 void TRANSFORM_OT_translate(struct wmOperatorType *ot);
 void TRANSFORM_OT_rotate(struct wmOperatorType *ot);
@@ -88,6 +89,7 @@ void TRANSFORM_OT_mirror(struct wmOperatorType *ot);
 void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot);
 void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot);
 void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot);
+void TRANSFORM_OT_context(struct wmOperatorType *ot);
 
 static TransformModeItem transform_modes[] =
 {
@@ -105,6 +107,7 @@ static TransformModeItem transform_modes[] =
 	{OP_EDGE_SLIDE, TFM_EDGE_SLIDE, TRANSFORM_OT_edge_slide},
 	{OP_EDGE_CREASE, TFM_CREASE, TRANSFORM_OT_edge_crease},
 	{OP_SEQ_SLIDE, TFM_SEQ_SLIDE, TRANSFORM_OT_seq_slide},
+	{OP_CONTEXT, TFM_CONTEXT, TRANSFORM_OT_context},
 	{NULL, 0}
 };
 
@@ -138,6 +141,7 @@ EnumPropertyItem transform_mode_types[] =
 	{TFM_ALIGN, "ALIGN", 0, "Align", ""},
 	{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
 	{TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
+	{TFM_CONTEXT, "CONTEXT", 0, "Context-Sensitive Transform", "Transform command based on the active manipulator type."},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -796,6 +800,26 @@ void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "value", 2, VecOne, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
 
 	Transform_Properties(ot, P_SNAP);
+}
+
+void TRANSFORM_OT_context(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Context-Sensitive Transform";
+	ot->description= "Transform command based on the active manipulator type.";
+	ot->idname = OP_CONTEXT;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	/* api callbacks */
+	ot->invoke = transform_invoke;
+	ot->exec   = transform_exec;
+	ot->modal  = transform_modal;
+	ot->cancel  = transform_cancel;
+	ot->poll   = ED_operator_screenactive;
+
+	RNA_def_float_vector(ot->srna, "value", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
+
+	Transform_Properties(ot, P_CONSTRAINT|P_PROPORTIONAL|P_MIRROR|P_ALIGN_SNAP|P_OPTIONS);
 }
 
 void TRANSFORM_OT_transform(struct wmOperatorType *ot)

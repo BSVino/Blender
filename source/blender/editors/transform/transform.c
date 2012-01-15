@@ -1688,6 +1688,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	case TFM_SEQ_SLIDE:
 		initSeqSlide(t);
 		break;
+	case TFM_CONTEXT:
+		initContext(t);
+		break;
 	}
 
 	if(t->state == TRANS_CANCEL)
@@ -5350,6 +5353,20 @@ int SeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 	ED_area_headerprint(t->sa, str);
 
 	return 1;
+}
+
+/* ************************** CONTEXT *************************** */
+
+void initContext(TransInfo *t)
+{
+	if(t->twtype & V3D_MANIP_TRANSLATE)
+		initTranslation(t);
+	else if(t->twtype & V3D_MANIP_ROTATE)
+		initTrackball(t);
+	else if(t->twtype & V3D_MANIP_SCALE)
+		initResize(t);
+	else
+		t->state = TRANS_CANCEL;
 }
 
 /* ************************** ANIM EDITORS - TRANSFORM TOOLS *************************** */

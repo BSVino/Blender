@@ -533,6 +533,8 @@ int Align(TransInfo *t, const int mval[2]);
 void initSeqSlide(TransInfo *t);
 int SeqSlide(TransInfo *t, const int mval[2]);
 
+void initContext(TransInfo *t);
+
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 
 struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
