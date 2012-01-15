@@ -54,7 +54,7 @@ To-do List
 * When the mouse is over a menu and the user clicks on another menu, it doesn't open the other menu.
 * ~~Clicking on the same menu again does not close it.~~
 * If a button panel is too small the user has to scroll it.
-* If the user is in grab/scale/rotate mode and presses the button again, it does nothing.
+* ~~If the user is in grab/scale/rotate mode and presses the button again, it does nothing.~~
 * If the user holds down a grab/scale/rotate tool, letting go does not finish the task.
 * There is a + to open the "n" control panel but no - to close it.
 * Clicking in empty space does not unselect.
@@ -62,7 +62,7 @@ To-do List
 * Right click should bring up a context menu.
 * Rotate around selection is not default.
 * There is no drag select or touch select.
-* Double click on an edge should select an edge loop.
+* ~~Double click on an edge should select an edge loop.~~ - Implemented with a configuration binding.
 * Python binding helpers are everywhere and irrelevant to most users.
 * No BEVEL TOOL
 * Right clicking does not offer delete and sometimes rename

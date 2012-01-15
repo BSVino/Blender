@@ -611,12 +611,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 						t->flag^= T_ALT_TRANSFORM;
 						t->redraw |= TREDRAW_HARD;
 					}
+					else
+						t->state = TRANS_CONFIRM;
 				}
 				break;
 			case TFM_MODAL_ROTATE:
 				/* only switch when... */
 				if(!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
-					if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
+					if( ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION) ) {
 						
 						resetTransRestrictions(t);
 						
@@ -631,6 +633,25 @@ int transformEvent(TransInfo *t, wmEvent *event)
 						initSnapping(t, NULL); // need to reinit after mode change
 						t->redraw |= TREDRAW_HARD;
 					}
+					else if( ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL) ) {
+						if ( event->shift ) {
+							resetTransRestrictions(t);
+						
+							if (t->mode == TFM_ROTATION) {
+								restoreTransObjects(t);
+								initTrackball(t);
+							}
+							else {
+								restoreTransObjects(t);
+								initRotation(t);
+							}
+							initSnapping(t, NULL); // need to reinit after mode change
+							t->redraw |= TREDRAW_HARD;
+						}
+						else {
+							t->state = TRANS_CONFIRM;
+						}
+					}
 				}
 				break;
 			case TFM_MODAL_RESIZE:
@@ -642,6 +663,8 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
 				}
+				else if(t->mode == TFM_RESIZE)
+					t->state = TRANS_CONFIRM;
 				break;
 				
 			case TFM_MODAL_SNAP_INV_ON:
