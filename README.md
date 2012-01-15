@@ -83,6 +83,8 @@ To-do List
 * If only one texture layer is active and it is a multiply/overlay/etc layer, don't black everything out.
 * Dragging a separator all the way over does not close it.
 * If the user is looking through a camera, the rotate and zoom controls should control the camera directly.
+* A 'Lock camera to view' option.
+* An FPS style WASD camera, perhaps with Q and E for rolling. [http://www.mail-archive.com/bf-committers@blender.org/msg06611.html]((Some Python code for it))
 * Canceling extrude should leave the mesh unchanged and not leave duplicate geometry.
 
 ### Workflow Improvement Wishlist
@@ -98,3 +100,4 @@ To-do List
 * A render from 3d view position command
 * Turning off render of a lamp should stop if from lighting the 3d view.
 * Overreliance on middle mouse button.
+* The translate/scale/rotate buttons on the toolbar on the right are pointless and should be removed.
