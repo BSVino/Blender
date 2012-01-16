@@ -55,7 +55,7 @@ To-do List
 * ~~Clicking on the same menu again does not close it.~~
 * If a button panel is too small the user has to scroll it.
 * ~~If the user is in grab/scale/rotate mode and presses the button again, it does nothing.~~
-* If the user holds down a grab/scale/rotate tool, letting go does not finish the task.
+* ~~If the user holds down a grab/scale/rotate tool, letting go does not finish the task.~~
 * There is a + to open the "n" control panel but no - to close it.
 * Clicking in empty space does not unselect.
 * Right click to select is default. Left click should select.

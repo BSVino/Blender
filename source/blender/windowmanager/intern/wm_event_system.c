@@ -641,7 +641,7 @@ int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 	return op->type->exec != NULL;
 }
 
-static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, wmEventHandler *handler, PointerRNA *properties, ReportList *reports)
+static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, wmEventHandler *handler, wmKeyMapItem *kmi, PointerRNA *properties, ReportList *reports)
 {
 	wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
 	
@@ -649,8 +649,13 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, w
 	op->type= ot;
 	BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
 
-	op->handler = handler;
-	
+	op->handler= handler;
+	op->kmi= kmi;
+
+	// If it was a button that created this operator then the key must be down.
+	// Otherwise it's a python script or something and the key doesn't exist.
+	op->keydown= !!kmi;
+
 	/* initialize properties, either copy or create */
 	op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
 	if(properties && properties->data) {
@@ -698,7 +703,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, w
 				{
 					wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
 					PointerRNA someptr = RNA_property_pointer_get(properties, prop);
-					wmOperator *opm= wm_operator_create(wm, otm, handler, &someptr, NULL);
+					wmOperator *opm= wm_operator_create(wm, otm, handler, kmi, &someptr, NULL);
 
 					IDP_ReplaceGroupInGroup(opm->properties, otmacro->properties);
 
@@ -712,7 +717,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, w
 		} else {
 			for (otmacro = ot->macro.first; otmacro; otmacro = otmacro->next) {
 				wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
-				wmOperator *opm= wm_operator_create(wm, otm, handler, otmacro->ptr, NULL);
+				wmOperator *opm= wm_operator_create(wm, otm, handler, kmi, otmacro->ptr, NULL);
 
 				BLI_addtail(&motherop->macro, opm);
 				opm->opm= motherop; /* pointer to mom, for modal() */
@@ -743,7 +748,7 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEventHandler *handler, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
+static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEventHandler *handler, wmKeyMapItem *kmi, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
@@ -753,7 +758,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEventHandler *h
 		return WM_operator_poll(C, ot);
 
 	if(WM_operator_poll(C, ot)) {
-		wmOperator *op= wm_operator_create(wm, ot, handler, properties, reports); /* if reports==NULL, theyll be initialized */
+		wmOperator *op= wm_operator_create(wm, ot, handler, kmi, properties, reports); /* if reports==NULL, theyll be initialized */
 		
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
 			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
@@ -922,7 +927,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 						CTX_wm_region_set(C, ar1);
 				}
 				
-				retval= wm_operator_invoke(C, ot, NULL, event, properties, reports, poll_only);
+				retval= wm_operator_invoke(C, ot, NULL, NULL, event, properties, reports, poll_only);
 				
 				/* set region back */
 				CTX_wm_region_set(C, ar);
@@ -936,7 +941,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 				ARegion *ar= CTX_wm_region(C);
 
 				CTX_wm_region_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, NULL, event, properties, reports, poll_only);
+				retval= wm_operator_invoke(C, ot, NULL, NULL, event, properties, reports, poll_only);
 				CTX_wm_region_set(C, ar);
 
 				return retval;
@@ -950,7 +955,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, NULL, event, properties, reports, poll_only);
+				retval= wm_operator_invoke(C, ot, NULL, NULL, event, properties, reports, poll_only);
 				CTX_wm_area_set(C, area);
 				CTX_wm_region_set(C, ar);
 
@@ -958,7 +963,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 			}
 			case WM_OP_EXEC_DEFAULT:
 			case WM_OP_INVOKE_DEFAULT:
-				return wm_operator_invoke(C, ot, NULL, event, properties, reports, poll_only);
+				return wm_operator_invoke(C, ot, NULL, NULL, event, properties, reports, poll_only);
 		}
 	}
 	
@@ -987,7 +992,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 
 #if 0
 	wmOperator *op;
-	op= wm_operator_create(wm, ot, NULL, properties, reports);
+	op= wm_operator_create(wm, ot, NULL, NULL, properties, reports);
 
 	if (op->type->exec) {
 		if(op->type->flag & OPTYPE_UNDO)
@@ -1258,7 +1263,7 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 }
 
 /* Warning: this function removes a modal handler, when finished */
-static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event, PointerRNA *properties)
+static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmKeyMapItem *kmi, wmEvent *event, PointerRNA *properties)
 {
 	int retval= OPERATOR_PASS_THROUGH;
 	
@@ -1266,6 +1271,20 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 	if(handler->op) {
 		wmOperator *op= handler->op;
 		wmOperatorType *ot= op->type;
+
+		if(op->kmi) {
+			if (op->kmi->type==event->type && op->kmi->alt==event->alt && op->kmi->ctrl==event->ctrl && op->kmi->shift==event->shift && op->kmi->oskey==event->oskey) {
+				// If this is the same button as that created the operator and it's a duplicate message, don't pass it along.
+				if (event->val==KM_PRESS && op->keydown)
+					return (WM_HANDLER_BREAK|WM_HANDLER_MODAL);
+
+				if (event->val==KM_PRESS && !op->keydown)
+					op->keydown = 1;
+
+				if (event->val==KM_RELEASE && op->keydown)
+					op->keydown = 0;
+			}
+		}
 
 		if(ot->modal) {
 			/* we set context to where modal handler came from */
@@ -1334,7 +1353,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname, 0);
 
 		if(ot)
-			retval= wm_operator_invoke(C, ot, handler, event, properties, NULL, FALSE);
+			retval= wm_operator_invoke(C, ot, handler, kmi, event, properties, NULL, FALSE);
 	}
 	/* Finished and pass through flag as handled */
 
@@ -1579,7 +1598,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 							
 							event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 							
-							action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
+							action |= wm_handler_operator_call(C, handlers, handler, kmi, event, kmi->ptr);
 							if(action & WM_HANDLER_BREAK)  /* not always_pass here, it denotes removed handler */
 								break;
 						}
@@ -1629,7 +1648,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 			else {
 				/* modal, swallows all */
-				action |= wm_handler_operator_call(C, handlers, handler, event, NULL);
+				action |= wm_handler_operator_call(C, handlers, handler, NULL, event, NULL);
 			}
 
 			if(action & WM_HANDLER_BREAK) {
@@ -2011,10 +2030,12 @@ void wm_event_do_handlers(bContext *C)
 					win->eventstate->prevclickx = event->x;
 					win->eventstate->prevclicky = event->y;
 				} else { /* reset if not */
-					win->eventstate->prevtype = -1;
+					win->eventstate->prevtype = event->type;
 					win->eventstate->prevval = 0;
 					win->eventstate->prevclicktime = 0;
 				}
+
+				win->eventstate->prevkeytime = (event->val == KM_PRESS || event->val == KM_RELEASE)?PIL_check_seconds_timer():0;
 			}
 
 			/* unlink and free here, blender-quit then frees all */

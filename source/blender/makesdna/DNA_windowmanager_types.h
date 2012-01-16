@@ -306,6 +306,7 @@ typedef struct wmOperator {
 
 	/* runtime */
 	struct wmEventHandler *handler;/* The event handler that created this operator, if any */
+	struct wmKeyMapItem *kmi;	/* The key that was pressed to create this operator, if any */
 	struct wmOperatorType *type;/* operator type definition from idname */
 	void *customdata;			/* custom storage, only while operator runs */
 	void *py_instance;			/* python stores the class instance here */
@@ -316,7 +317,7 @@ typedef struct wmOperator {
 	ListBase macro;				/* list of operators, can be a tree */
 	struct wmOperator *opm;		/* current running macro, not saved */
 	struct uiLayout *layout;	/* runtime for drawing */
-	short flag, pad[3];
+	short flag, keydown, pad[2];
 
 } wmOperator;
 

@@ -357,6 +357,7 @@ typedef struct wmEvent {
 	short prevval;
 	int prevx, prevy;
 	double prevclicktime;
+	double prevkeytime;
 	int prevclickx, prevclicky;
 	
 	/* modifier states */

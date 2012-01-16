@@ -74,6 +74,8 @@
 #include "ED_mesh.h"
 #include "ED_clip.h"
 
+#include "PIL_time.h"
+
 #include "UI_view2d.h"
 #include "WM_types.h"
 #include "WM_api.h"
@@ -532,10 +534,6 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
 
-	WM_modalkeymap_add_item(keymap, GKEY, KM_PRESS, 0, 0, TFM_MODAL_TRANSLATE);
-	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
-	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
-	
 	WM_modalkeymap_add_item(keymap, TABKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_SNAP_TOGGLE);
 
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_INV_ON);
@@ -587,8 +585,12 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
-	/* handle modal keymap first */
-	if (event->type == EVT_MODAL_MAP) {
+	if (op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && op->kmi->type == event->type && op->kmi->val == event->val &&
+		op->kmi->alt == event->alt && op->kmi->ctrl == event->ctrl && op->kmi->shift == event->shift && op->kmi->oskey == event->oskey) {
+		// If this button was the button that created this operator being pressed again then it is a confirm.
+		t->state = TRANS_CONFIRM;
+	}
+	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case TFM_MODAL_CANCEL:
 				t->state = TRANS_CANCEL;
@@ -596,78 +598,6 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 			case TFM_MODAL_CONFIRM:
 				t->state = TRANS_CONFIRM;
 				break;
-			case TFM_MODAL_TRANSLATE:
-				/* only switch when... */
-				if( ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
-					resetTransRestrictions(t);
-					restoreTransObjects(t);
-					initTranslation(t);
-					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw |= TREDRAW_HARD;
-				}
-				else if(t->mode == TFM_TRANSLATION) {
-					if(t->options&CTX_MOVIECLIP) {
-						restoreTransObjects(t);
-
-						t->flag^= T_ALT_TRANSFORM;
-						t->redraw |= TREDRAW_HARD;
-					}
-					else
-						t->state = TRANS_CONFIRM;
-				}
-				break;
-			case TFM_MODAL_ROTATE:
-				/* only switch when... */
-				if(!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
-					if( ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION) ) {
-						
-						resetTransRestrictions(t);
-						
-						if (t->mode == TFM_ROTATION) {
-							restoreTransObjects(t);
-							initTrackball(t);
-						}
-						else {
-							restoreTransObjects(t);
-							initRotation(t);
-						}
-						initSnapping(t, NULL); // need to reinit after mode change
-						t->redraw |= TREDRAW_HARD;
-					}
-					else if( ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL) ) {
-						if ( event->shift ) {
-							resetTransRestrictions(t);
-						
-							if (t->mode == TFM_ROTATION) {
-								restoreTransObjects(t);
-								initTrackball(t);
-							}
-							else {
-								restoreTransObjects(t);
-								initRotation(t);
-							}
-							initSnapping(t, NULL); // need to reinit after mode change
-							t->redraw |= TREDRAW_HARD;
-						}
-						else {
-							t->state = TRANS_CONFIRM;
-						}
-					}
-				}
-				break;
-			case TFM_MODAL_RESIZE:
-				/* only switch when... */
-				if( ELEM3(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) {
-					resetTransRestrictions(t);
-					restoreTransObjects(t);
-					initResize(t);
-					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw |= TREDRAW_HARD;
-				}
-				else if(t->mode == TFM_RESIZE)
-					t->state = TRANS_CONFIRM;
-				break;
-				
 			case TFM_MODAL_SNAP_INV_ON:
 				t->modifiers |= MOD_SNAP_INVERT;
 				t->redraw |= TREDRAW_HARD;
@@ -808,32 +738,7 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 	else if (event->val==KM_PRESS) {
 		switch (event->type){
 		case RIGHTMOUSE:
-			if (op->handler)
-			{
-				wmWindowManager *wm= CTX_wm_manager(t->context);
-				wmKeyMap *keymap= WM_keymap_active(wm, op->handler->keymap);
-				wmKeyMapItem *kmi;
-
-				t->state = 0;
-
-				// If right mouse button was the button that created this operator then it is a confirm.
-				// Otherwise it behaves normally as a cancel.
-				for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
-					if(strcmp(op->idname, kmi->idname) == 0) {
-						if (kmi->type == event->type && kmi->val == event->val) {
-							t->state = TRANS_CONFIRM;
-							break;
-						}
-					}
-				}
-
-				if (t->state == TRANS_CONFIRM)
-					break;
-
-				t->state = TRANS_CANCEL;
-			}
-			else
-				t->state = TRANS_CANCEL;
+			t->state = TRANS_CANCEL;
 			break;
 		/* enforce redraw of transform when modifiers are used */
 		case LEFTSHIFTKEY:
@@ -906,6 +811,16 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw |= TREDRAW_HARD;
 			}
+			else if(t->mode == TFM_TRANSLATION) {
+				if(t->options&CTX_MOVIECLIP) {
+					restoreTransObjects(t);
+
+					t->flag^= T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+				}
+				else
+					t->state = TRANS_CONFIRM;
+			}
 			break;
 		case SKEY:
 			/* only switch when... */
@@ -916,14 +831,16 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw |= TREDRAW_HARD;
 			}
+			else if(t->mode == TFM_RESIZE)
+				t->state = TRANS_CONFIRM;
 			break;
 		case RKEY:
 			/* only switch when... */
 			if(!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
-				if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
-
+				if( ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION) ) {
+						
 					resetTransRestrictions(t);
-
+						
 					if (t->mode == TFM_ROTATION) {
 						restoreTransObjects(t);
 						initTrackball(t);
@@ -934,6 +851,25 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 					}
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
+				}
+				else if( ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL) ) {
+					if ( event->shift ) {
+						resetTransRestrictions(t);
+						
+						if (t->mode == TFM_ROTATION) {
+							restoreTransObjects(t);
+							initTrackball(t);
+						}
+						else {
+							restoreTransObjects(t);
+							initRotation(t);
+						}
+						initSnapping(t, NULL); // need to reinit after mode change
+						t->redraw |= TREDRAW_HARD;
+					}
+					else {
+						t->state = TRANS_CONFIRM;
+					}
 				}
 			}
 			break;
@@ -1080,30 +1016,39 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 
 	}
 	else if (event->val==KM_RELEASE) {
-		switch (event->type){
-		case LEFTSHIFTKEY:
-		case RIGHTSHIFTKEY:
-			t->modifiers &= ~MOD_CONSTRAINT_PLANE;
-			t->redraw |= TREDRAW_HARD;
-			break;
-
-		case MIDDLEMOUSE:
-			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
-				postSelectConstraint(t);
-				t->redraw |= TREDRAW_HARD;
-			}
-			break;
-//		case LEFTMOUSE:
-//		case RIGHTMOUSE:
-//			if(WM_modal_tweak_exit(event, t->event_type))
-////			if (t->options & CTX_TWEAK)
-//				t->state = TRANS_CONFIRM;
-//			break;
-		default:
-			handled = 0;
-			break;
+		if (op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && op->kmi->type == event->type && event->prevtype == event->type &&
+			op->kmi->alt == event->alt && op->kmi->ctrl == event->ctrl && op->kmi->shift == event->shift && op->kmi->oskey == event->oskey) {
+				// If this is the same key that was originally pressed to begin this operator, and it is now being released,
+				// then this may be a drag. If the mouse has moved far or long enough, we are at the end of the drag.
+				if (PIL_check_seconds_timer() - event->prevkeytime > 0.250 || ABS(event->mval[0] - t->imval[0]) > 10 || ABS(event->mval[1] - t->imval[1]) > 10)
+					t->state = TRANS_CONFIRM;
 		}
+		else {
+			switch (event->type){
+			case LEFTSHIFTKEY:
+			case RIGHTSHIFTKEY:
+				t->modifiers &= ~MOD_CONSTRAINT_PLANE;
+				t->redraw |= TREDRAW_HARD;
+				break;
+
+			case MIDDLEMOUSE:
+				if ((t->flag & T_NO_CONSTRAINT)==0) {
+					t->modifiers &= ~MOD_CONSTRAINT_SELECT;
+					postSelectConstraint(t);
+					t->redraw |= TREDRAW_HARD;
+				}
+				break;
+	//		case LEFTMOUSE:
+	//		case RIGHTMOUSE:
+	//			if(WM_modal_tweak_exit(event, t->event_type))
+	////			if (t->options & CTX_TWEAK)
+	//				t->state = TRANS_CONFIRM;
+	//			break;
+			default:
+				handled = 0;
+				break;
+			}
+			}
 
 		/* confirm transform if launch key is released after mouse move */
 		if (t->flag & T_RELEASE_CONFIRM)
