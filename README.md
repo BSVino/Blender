@@ -71,7 +71,7 @@ To-do List
 * No scale management with the dolly view tool. Getting closer to an object should slow it down.
 * Gray out non-selected objects while in edit mode.
 * Deleting an edge deletes its face too.
-* Copy is broken, right clicking on a text area doesn't give a menu to copy-paste.
+* Right clicking on a text area doesn't give a menu to copy-paste.
 * Ctrl-s shouldn't prompt to overwrite.
 * While the file dialog is open, pressing the X on the window should close the file dialog. (Or there should be another X)
 * Saving user preferences saves over the default .blend that's loaded when you choose "new" from the menu
@@ -86,6 +86,8 @@ To-do List
 * A 'Lock camera to view' option.
 * An FPS style WASD camera, perhaps with Q and E for rolling. [(Some Python code for it)](http://www.mail-archive.com/bf-committers@blender.org/msg06611.html)
 * Canceling extrude should leave the mesh unchanged and not leave duplicate geometry.
+* The functionality of the "Origin" button on the toolbar does not appear to exist in the "Object" menu.
+* The 3D cursor is an advanced feature and should be hidden by default.
 
 ### Workflow Improvement Wishlist
 
@@ -101,3 +103,6 @@ To-do List
 * Turning off render of a lamp should stop if from lighting the 3d view.
 * Overreliance on middle mouse button.
 * The translate/scale/rotate buttons on the toolbar on the right are pointless and should be removed.
+* A better interface for managing materials and textures. Put them on the same screen? Show associated textures when viewing a material?
+* Find a way to reduce screen clutter and information overload in the default view.
+* Viewport presets? A quick way to change between 1 panel, 4-view, animation, advanced.
