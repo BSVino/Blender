@@ -77,6 +77,7 @@
 #include "UI_view2d.h"
 #include "WM_types.h"
 #include "WM_api.h"
+#include "wm_event_system.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -560,7 +561,7 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 }
 
 
-int transformEvent(TransInfo *t, wmEvent *event)
+int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	float mati[3][3]= MAT3_UNITY;
 	char cmode = constraintModeToChar(t);
@@ -807,7 +808,32 @@ int transformEvent(TransInfo *t, wmEvent *event)
 	else if (event->val==KM_PRESS) {
 		switch (event->type){
 		case RIGHTMOUSE:
-			t->state = TRANS_CANCEL;
+			if (op->handler)
+			{
+				wmWindowManager *wm= CTX_wm_manager(t->context);
+				wmKeyMap *keymap= WM_keymap_active(wm, op->handler->keymap);
+				wmKeyMapItem *kmi;
+
+				t->state = 0;
+
+				// If right mouse button was the button that created this operator then it is a confirm.
+				// Otherwise it behaves normally as a cancel.
+				for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
+					if(strcmp(op->idname, kmi->idname) == 0) {
+						if (kmi->type == event->type && kmi->val == event->val) {
+							t->state = TRANS_CONFIRM;
+							break;
+						}
+					}
+				}
+
+				if (t->state == TRANS_CONFIRM)
+					break;
+
+				t->state = TRANS_CANCEL;
+			}
+			else
+				t->state = TRANS_CANCEL;
 			break;
 		/* enforce redraw of transform when modifiers are used */
 		case LEFTSHIFTKEY:

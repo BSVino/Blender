@@ -305,6 +305,7 @@ typedef struct wmOperator {
 	IDProperty *properties;		/* saved, user-settable properties */
 
 	/* runtime */
+	struct wmEventHandler *handler;/* The event handler that created this operator, if any */
 	struct wmOperatorType *type;/* operator type definition from idname */
 	void *customdata;			/* custom storage, only while operator runs */
 	void *py_instance;			/* python stores the class instance here */

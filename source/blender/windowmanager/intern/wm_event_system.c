@@ -641,13 +641,15 @@ int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 	return op->type->exec != NULL;
 }
 
-static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
+static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, wmEventHandler *handler, PointerRNA *properties, ReportList *reports)
 {
 	wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
 	
 	/* XXX adding new operator could be function, only happens here now */
 	op->type= ot;
 	BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
+
+	op->handler = handler;
 	
 	/* initialize properties, either copy or create */
 	op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
@@ -696,7 +698,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 				{
 					wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
 					PointerRNA someptr = RNA_property_pointer_get(properties, prop);
-					wmOperator *opm= wm_operator_create(wm, otm, &someptr, NULL);
+					wmOperator *opm= wm_operator_create(wm, otm, handler, &someptr, NULL);
 
 					IDP_ReplaceGroupInGroup(opm->properties, otmacro->properties);
 
@@ -710,7 +712,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 		} else {
 			for (otmacro = ot->macro.first; otmacro; otmacro = otmacro->next) {
 				wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
-				wmOperator *opm= wm_operator_create(wm, otm, otmacro->ptr, NULL);
+				wmOperator *opm= wm_operator_create(wm, otm, handler, otmacro->ptr, NULL);
 
 				BLI_addtail(&motherop->macro, opm);
 				opm->opm= motherop; /* pointer to mom, for modal() */
@@ -741,7 +743,7 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
+static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEventHandler *handler, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
@@ -751,7 +753,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		return WM_operator_poll(C, ot);
 
 	if(WM_operator_poll(C, ot)) {
-		wmOperator *op= wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
+		wmOperator *op= wm_operator_create(wm, ot, handler, properties, reports); /* if reports==NULL, theyll be initialized */
 		
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
 			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
@@ -920,7 +922,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 						CTX_wm_region_set(C, ar1);
 				}
 				
-				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
+				retval= wm_operator_invoke(C, ot, NULL, event, properties, reports, poll_only);
 				
 				/* set region back */
 				CTX_wm_region_set(C, ar);
@@ -934,7 +936,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 				ARegion *ar= CTX_wm_region(C);
 
 				CTX_wm_region_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
+				retval= wm_operator_invoke(C, ot, NULL, event, properties, reports, poll_only);
 				CTX_wm_region_set(C, ar);
 
 				return retval;
@@ -948,7 +950,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
+				retval= wm_operator_invoke(C, ot, NULL, event, properties, reports, poll_only);
 				CTX_wm_area_set(C, area);
 				CTX_wm_region_set(C, ar);
 
@@ -956,7 +958,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 			}
 			case WM_OP_EXEC_DEFAULT:
 			case WM_OP_INVOKE_DEFAULT:
-				return wm_operator_invoke(C, ot, event, properties, reports, poll_only);
+				return wm_operator_invoke(C, ot, NULL, event, properties, reports, poll_only);
 		}
 	}
 	
@@ -985,7 +987,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 
 #if 0
 	wmOperator *op;
-	op= wm_operator_create(wm, ot, properties, reports);
+	op= wm_operator_create(wm, ot, NULL, properties, reports);
 
 	if (op->type->exec) {
 		if(op->type->flag & OPTYPE_UNDO)
@@ -1332,7 +1334,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname, 0);
 
 		if(ot)
-			retval= wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
+			retval= wm_operator_invoke(C, ot, handler, event, properties, NULL, FALSE);
 	}
 	/* Finished and pass through flag as handled */
 

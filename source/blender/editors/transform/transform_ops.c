@@ -373,7 +373,7 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* XXX insert keys are called here, and require context */
 	t->context= C;
-	exit_code = transformEvent(t, event);
+	exit_code = transformEvent(t, op, event);
 	t->context= NULL;
 
 	transformApply(C, t);
