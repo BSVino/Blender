@@ -558,6 +558,41 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	return keymap;
 }
 
+int is_same_type(int type1, int type2)
+{
+	if(type1 == type2)
+		return 1;
+
+	switch(type1) {
+		case SELECTMOUSE:
+			if(U.flag & USER_LMOUSESELECT)
+				return type2 == LEFTMOUSE;
+			else
+				return type2 == RIGHTMOUSE;
+			
+		case ACTIONMOUSE:
+			if(U.flag & USER_LMOUSESELECT)
+				return type2 == RIGHTMOUSE;
+			else
+				return type2 == LEFTMOUSE;
+	}
+
+	switch(type2) {
+		case SELECTMOUSE:
+			if(U.flag & USER_LMOUSESELECT)
+				return type1 == LEFTMOUSE;
+			else
+				return type1 == RIGHTMOUSE;
+			
+		case ACTIONMOUSE:
+			if(U.flag & USER_LMOUSESELECT)
+				return type1 == RIGHTMOUSE;
+			else
+				return type1 == LEFTMOUSE;
+	}
+
+	return 0;
+}
 
 int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 {
@@ -585,7 +620,7 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
-	if (op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && op->kmi->type == event->type && op->kmi->val == event->val &&
+	if (op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && is_same_type(op->kmi->type, event->type) && op->kmi->val == event->val &&
 		op->kmi->alt == event->alt && op->kmi->ctrl == event->ctrl && op->kmi->shift == event->shift && op->kmi->oskey == event->oskey) {
 		// If this button was the button that created this operator being pressed again then it is a confirm.
 		t->state = TRANS_CONFIRM;
@@ -1016,7 +1051,7 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 
 	}
 	else if (event->val==KM_RELEASE) {
-		if (op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && op->kmi->type == event->type && event->prevtype == event->type &&
+		if (op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && is_same_type(op->kmi->type, event->type) && is_same_type(event->prevtype, event->type) &&
 			op->kmi->alt == event->alt && op->kmi->ctrl == event->ctrl && op->kmi->shift == event->shift && op->kmi->oskey == event->oskey) {
 				// If this is the same key that was originally pressed to begin this operator, and it is now being released,
 				// then this may be a drag. If the mouse has moved far or long enough, we are at the end of the drag.
