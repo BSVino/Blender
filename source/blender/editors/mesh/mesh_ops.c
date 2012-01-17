@@ -59,6 +59,8 @@
 
 void ED_operatortypes_mesh(void)
 {
+	WM_operatortype_append(MESH_OT_selection_mode_set);
+
 	WM_operatortype_append(MESH_OT_select_all);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);

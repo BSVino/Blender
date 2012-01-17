@@ -1581,6 +1581,79 @@ void MESH_OT_separate(wmOperatorType *ot)
 }
 
 
+/* *************** Operator: set selection mode *************/
+
+static EnumPropertyItem prop_selection_mode[] = {
+	{SCE_SELECT_VERTEX, "VERTEX", 0, "Vertex", ""},
+	{SCE_SELECT_EDGE, "EDGE", 0, "Edge", ""},
+	{SCE_SELECT_FACE, "FACE", 0, "Face", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int selection_mode_set_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	ObjectMode mode = OB_MODE_EDIT;
+	Mesh *me= ob?get_mesh(ob):NULL;
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	int type;
+
+	if(!ob || ob->type != OB_MESH)
+		return OPERATOR_PASS_THROUGH;
+
+	// Make sure we are in edit mode.
+	if(ob->mode != mode) {
+		PointerRNA ptr;
+
+		WM_operator_properties_create(&ptr, "OBJECT_OT_mode_set");
+		RNA_enum_set(&ptr, "mode", OB_MODE_EDIT);
+		RNA_boolean_set(&ptr, "toggle", 0);
+		WM_operator_name_call(C, "OBJECT_OT_mode_set", WM_OP_EXEC_REGION_WIN, &ptr);
+		WM_operator_properties_free(&ptr);
+	}
+
+	type= RNA_enum_get(op->ptr, "mode");
+
+	if (type != SCE_SELECT_FACE && type != SCE_SELECT_EDGE && type != SCE_SELECT_VERTEX)
+		return OPERATOR_PASS_THROUGH;
+
+	ts->selectmode = type;
+
+	if(!me)
+		return OPERATOR_PASS_THROUGH;
+
+	if(!me->edit_mesh)
+		return OPERATOR_PASS_THROUGH;
+
+	if(me->edit_mesh->selectmode == type)
+		return OPERATOR_PASS_THROUGH;
+
+	me->edit_mesh->selectmode= type;
+	EM_selectmode_set(me->edit_mesh);
+
+	WM_main_add_notifier(NC_GEOM|ND_SELECT, me);
+	WM_main_add_notifier(NC_SCENE|ND_TOOLSETTINGS, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_selection_mode_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Selection Mode";
+	ot->description= "Specify to work with either vertex, edge, or face selection.";
+	ot->idname= "MESH_OT_selection_mode_set";
+
+	/* api callbacks */
+	ot->exec= selection_mode_set_exec;
+
+	/* flags */
+	ot->flag= 0;
+
+	ot->prop= RNA_def_enum(ot->srna, "mode", prop_selection_mode, 0, "Mode", "");
+}
+
+
 /* ******************************************** */
 
 /* *************** UNDO ***************************** */

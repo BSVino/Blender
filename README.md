@@ -64,7 +64,7 @@ To-do List
 * There is no drag select or touch select.
 * ~~Double click on an edge should select an edge loop.~~ - Implemented with a configuration binding.
 * Python binding helpers are everywhere and irrelevant to most users.
-* No BEVEL TOOL
+* No BEVEL TOOL [(Possible implementation?)](http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/Bevel)
 * Right clicking does not offer delete and sometimes rename
 * Primary selection color is white, invisible when dealing with white things.
 * Click-dragging on an object's center sometimes moves the object behind it instead.
@@ -91,7 +91,7 @@ To-do List
 
 ### Workflow Improvement Wishlist
 
-* Single-button press method to switch between object selection, vertex selection, edge selection, face selection. No "Object Mode" separate from "Edit Mode"
+* ~~Single-button press method to switch between object selection, vertex selection, edge selection, face selection.~~ No "Object Mode" separate from "Edit Mode"
 * Place the "Mesh Tools" toolbar in floating buttons over the 3d view.
 * Don't open a window when delete is pressed. Just delete whatever is selected.
 * Default to GLSL mode?

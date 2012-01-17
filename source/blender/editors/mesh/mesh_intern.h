@@ -67,6 +67,8 @@ void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
 
 void MESH_OT_separate(struct wmOperatorType *ot);
 
+void MESH_OT_selection_mode_set(struct wmOperatorType *ot);
+
 /* ******************* editmesh_add.c */
 void MESH_OT_primitive_plane_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_cube_add(struct wmOperatorType *ot);
