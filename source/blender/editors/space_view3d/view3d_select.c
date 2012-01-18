@@ -2554,4 +2554,5 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "confirm_on_release", 0, "Confirm On Release", "If true, confirm the selection when the mouse is released.");
 }

@@ -2456,6 +2456,12 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case GESTURE_MODAL_SELECT:
 		case GESTURE_MODAL_DESELECT:
 		case GESTURE_MODAL_NOP:
+
+			if(event->val == GESTURE_MODAL_NOP && RNA_boolean_get(op->ptr, "confirm_on_release")) {
+				wm_gesture_end(C, op);
+				return OPERATOR_FINISHED; /* use finish or we dont get an undo */
+			}
+
 			if(RNA_struct_find_property(op->ptr, "gesture_mode"))
 				RNA_int_set(op->ptr, "gesture_mode", event->val);
 
@@ -2472,6 +2478,9 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 			wm_gesture_end(C, op);
 			return OPERATOR_FINISHED; /* use finish or we dont get an undo */
 		}
+	}
+	else {
+		return OPERATOR_RUNNING_MODAL;
 	}
 //	// Allow view navigation???
 //	else {
