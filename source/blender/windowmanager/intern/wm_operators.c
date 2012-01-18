@@ -2393,15 +2393,27 @@ int WM_border_select_cancel(bContext *C, wmOperator *op)
 int circle_select_size= 25; // XXX - need some operator memory thing\!
 #endif
 
+void gesture_circle_apply(bContext *C, wmOperator *op);
+
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
+	wmGesture *gesture= WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
+	op->customdata= gesture;
 	
+	// If the user has the operator bound to the left mouse button then start activated.
+	if (event->type == SELECTMOUSE && (U.flag&USER_LMOUSESELECT) || event->type == LEFTMOUSE) {
+		if(RNA_struct_find_property(op->ptr, "gesture_mode"))
+			RNA_int_set(op->ptr, "gesture_mode", GESTURE_MODAL_SELECT);
+
+		gesture_circle_apply(C, op);
+		gesture->mode= 1;
+	}
+
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
-	
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
