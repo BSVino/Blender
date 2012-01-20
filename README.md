@@ -107,3 +107,5 @@ To-do List
 * Find a way to reduce screen clutter and information overload in the default view.
 * Viewport presets? A quick way to change between 1 panel, 4-view, animation, advanced.
 * [Oh my god, this.](http://billrey.blogspot.com/2011/10/cleaning-up-blender-ui.html)
+* [Another UI document](http://dl.dropbox.com/u/17486466/BlenderUI.pdf)
+* A beginner's tutorial built into Blender.
