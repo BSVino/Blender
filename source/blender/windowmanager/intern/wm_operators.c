@@ -2474,8 +2474,16 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_FINISHED; /* use finish or we dont get an undo */
 			}
 
-			if(RNA_struct_find_property(op->ptr, "gesture_mode"))
-				RNA_int_set(op->ptr, "gesture_mode", event->val);
+			if(RNA_struct_find_property(op->ptr, "gesture_mode")) {
+				if(RNA_boolean_get(op->ptr, "swap_select_modes")) {
+					if(event->val == GESTURE_MODAL_SELECT)
+						RNA_int_set(op->ptr, "gesture_mode", GESTURE_MODAL_DESELECT);
+					else if (event->val == GESTURE_MODAL_DESELECT)
+						RNA_int_set(op->ptr, "gesture_mode", GESTURE_MODAL_SELECT);
+				}
+				else
+					RNA_int_set(op->ptr, "gesture_mode", event->val);
+			}
 
 			if(event->val != GESTURE_MODAL_NOP) {
 				/* apply first click */
@@ -2492,12 +2500,16 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 	else {
+		if (RNA_boolean_get(op->ptr, "confirm_on_release")) {
+			// This is a bit of a hack. If the user releases the click before the ctrl key then it isn't registered
+			// as a modal key, so handle it here as a special case.
+			if ((event->type == LEFTMOUSE || event->type == RIGHTMOUSE || event->type == SELECTMOUSE) && event->val == KM_RELEASE && event->ctrl) {
+				wm_gesture_end(C, op);
+				return OPERATOR_FINISHED; /* use finish or we dont get an undo */
+			}
+		}
 		return OPERATOR_RUNNING_MODAL;
 	}
-//	// Allow view navigation???
-//	else {
-//		return OPERATOR_PASS_THROUGH;
-//	}
 
 	return OPERATOR_RUNNING_MODAL;
 }
