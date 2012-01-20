@@ -620,7 +620,7 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
-	if (op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && is_same_type(op->kmi->type, event->type) && op->kmi->val == event->val &&
+	if (RNA_boolean_get(op->ptr, "tap_confirm") && op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && is_same_type(op->kmi->type, event->type) && op->kmi->val == event->val &&
 		op->kmi->alt == event->alt && op->kmi->ctrl == event->ctrl && op->kmi->shift == event->shift && op->kmi->oskey == event->oskey) {
 		// If this button was the button that created this operator being pressed again then it is a confirm.
 		t->state = TRANS_CONFIRM;
@@ -853,7 +853,7 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 					t->flag^= T_ALT_TRANSFORM;
 					t->redraw |= TREDRAW_HARD;
 				}
-				else
+				else if (RNA_boolean_get(op->ptr, "tap_confirm"))
 					t->state = TRANS_CONFIRM;
 			}
 			break;
@@ -866,13 +866,13 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw |= TREDRAW_HARD;
 			}
-			else if(t->mode == TFM_RESIZE)
+			else if(t->mode == TFM_RESIZE && RNA_boolean_get(op->ptr, "tap_confirm"))
 				t->state = TRANS_CONFIRM;
 			break;
 		case RKEY:
 			/* only switch when... */
 			if(!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
-				if( ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION) ) {
+				if( ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION) || (!RNA_boolean_get(op->ptr, "tap_confirm") && ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL)) ) {
 						
 					resetTransRestrictions(t);
 						
@@ -887,10 +887,10 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
 				}
-				else if( ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL) ) {
-					if ( event->shift ) {
+				else if( RNA_boolean_get(op->ptr, "tap_confirm") && ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL) ) {
+					if( event->shift ) {
 						resetTransRestrictions(t);
-						
+
 						if (t->mode == TFM_ROTATION) {
 							restoreTransObjects(t);
 							initTrackball(t);
@@ -1051,12 +1051,15 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 
 	}
 	else if (event->val==KM_RELEASE) {
-		if (op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && is_same_type(op->kmi->type, event->type) && is_same_type(event->prevtype, event->type) &&
+		if ((t->flag&T_DRAGGING) && op->kmi && strcmp(op->idname, op->kmi->idname) == 0 && is_same_type(op->kmi->type, event->type) && is_same_type(event->prevtype, event->type) &&
 			op->kmi->alt == event->alt && op->kmi->ctrl == event->ctrl && op->kmi->shift == event->shift && op->kmi->oskey == event->oskey) {
 				// If this is the same key that was originally pressed to begin this operator, and it is now being released,
 				// then this may be a drag. If the mouse has moved far or long enough, we are at the end of the drag.
 				if (PIL_check_seconds_timer() - event->prevkeytime > 0.250 || ABS(event->mval[0] - t->imval[0]) > 10 || ABS(event->mval[1] - t->imval[1]) > 10)
 					t->state = TRANS_CONFIRM;
+				else
+					// Once the key is released we can never drag again! At least until the next operator invoke.
+					t->flag &= ~T_DRAGGING;
 		}
 		else {
 			switch (event->type){
