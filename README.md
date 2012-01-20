@@ -106,3 +106,4 @@ To-do List
 * A better interface for managing materials and textures. Put them on the same screen? Show associated textures when viewing a material?
 * Find a way to reduce screen clutter and information overload in the default view.
 * Viewport presets? A quick way to change between 1 panel, 4-view, animation, advanced.
+* [Oh my god, this.](http://billrey.blogspot.com/2011/10/cleaning-up-blender-ui.html)
