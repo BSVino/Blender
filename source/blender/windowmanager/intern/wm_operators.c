@@ -2394,12 +2394,15 @@ int circle_select_size= 25; // XXX - need some operator memory thing\!
 #endif
 
 void gesture_circle_apply(bContext *C, wmOperator *op);
+void view3d_circle_select_init(bContext *C, wmOperator *op);
 
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmGesture *gesture= WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
 	op->customdata= gesture;
 	
+	view3d_circle_select_init(C, op);
+
 	// If the user has the operator bound to the left mouse button then start activated.
 	if (event->type == SELECTMOUSE && (U.flag&USER_LMOUSESELECT) || event->type == LEFTMOUSE) {
 		if(RNA_struct_find_property(op->ptr, "gesture_mode"))
@@ -2475,7 +2478,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 
 			if(RNA_struct_find_property(op->ptr, "gesture_mode")) {
-				if(RNA_boolean_get(op->ptr, "swap_select_modes")) {
+				if(RNA_boolean_get(op->ptr, "deselect")) {
 					if(event->val == GESTURE_MODAL_SELECT)
 						RNA_int_set(op->ptr, "gesture_mode", GESTURE_MODAL_DESELECT);
 					else if (event->val == GESTURE_MODAL_DESELECT)
@@ -2501,9 +2504,9 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		if (RNA_boolean_get(op->ptr, "confirm_on_release")) {
-			// This is a bit of a hack. If the user releases the click before the ctrl key then it isn't registered
+			// This is a bit of a hack. If the user releases the click before a modification key then it isn't registered
 			// as a modal key, so handle it here as a special case.
-			if ((event->type == LEFTMOUSE || event->type == RIGHTMOUSE || event->type == SELECTMOUSE) && event->val == KM_RELEASE && event->ctrl) {
+			if ((event->type == LEFTMOUSE || event->type == RIGHTMOUSE || event->type == SELECTMOUSE) && event->val == KM_RELEASE && (event->ctrl || event->shift || event->alt || event->oskey)) {
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED; /* use finish or we dont get an undo */
 			}

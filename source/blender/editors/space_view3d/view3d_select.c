@@ -2480,7 +2480,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	int select;
 
-	if(RNA_boolean_get(op->ptr, "swap_select_modes")) {
+	if(RNA_boolean_get(op->ptr, "deselect")) {
 		if(gesture_mode == GESTURE_MODAL_SELECT)
 			gesture_mode = GESTURE_MODAL_DESELECT;
 		else if (gesture_mode == GESTURE_MODAL_DESELECT)
@@ -2542,6 +2542,18 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+void view3d_circle_select_init(bContext *C, wmOperator *op)
+{
+	ViewContext vc;
+	
+	view3d_operator_needs_opengl(C);
+	
+	view3d_set_viewcontext(C, &vc);
+
+	if (!RNA_boolean_get(op->ptr, "extend") && !RNA_boolean_get(op->ptr, "deselect"))
+		EM_deselect_all(((Mesh *)CTX_data_edit_object(C)->data)->edit_mesh);
+}
+
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
 	ot->name= "Circle Select";
@@ -2561,6 +2573,7 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 	RNA_def_boolean(ot->srna, "confirm_on_release", 0, "Confirm On Release", "If true, confirm the selection when the mouse is released");
-	RNA_def_boolean(ot->srna, "swap_select_modes", 0, "Swap Select Modes", "If true, left click will deselect and right click will select");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
 }
