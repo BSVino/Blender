@@ -2552,10 +2552,21 @@ void view3d_circle_select_init(bContext *C, wmOperator *op)
 
 	if (!RNA_boolean_get(op->ptr, "extend") && !RNA_boolean_get(op->ptr, "deselect"))
 		EM_deselect_all(((Mesh *)CTX_data_edit_object(C)->data)->edit_mesh);
+
+	if (RNA_int_get(op->ptr, "radius")) {
+		int radius= RNA_int_get(op->ptr, "radius");
+
+		wmGesture *gesture= op->customdata;
+		rcti *rect= gesture->customdata;
+
+		rect->xmax= radius;
+	}
 }
 
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	ot->name= "Circle Select";
 	ot->description= "Select items using circle selection";
 	ot->idname= "VIEW3D_OT_select_circle";
@@ -2569,9 +2580,12 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
+	prop = RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Initial Radius", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
 	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 	RNA_def_boolean(ot->srna, "confirm_on_release", 0, "Confirm On Release", "If true, confirm the selection when the mouse is released");
