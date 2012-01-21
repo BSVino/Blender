@@ -1055,7 +1055,7 @@ int transformEvent(TransInfo *t, wmOperator *op, wmEvent *event)
 			op->kmi->alt == event->alt && op->kmi->ctrl == event->ctrl && op->kmi->shift == event->shift && op->kmi->oskey == event->oskey) {
 				// If this is the same key that was originally pressed to begin this operator, and it is now being released,
 				// then this may be a drag. If the mouse has moved far or long enough, we are at the end of the drag.
-				if (PIL_check_seconds_timer() - event->prevkeytime > 0.250 || ABS(event->mval[0] - t->imval[0]) > 10 || ABS(event->mval[1] - t->imval[1]) > 10)
+				if (RNA_boolean_get(op->ptr, "drag_drop") && (PIL_check_seconds_timer() - event->prevkeytime > 0.250 || ABS(event->mval[0] - t->imval[0]) > 10 || ABS(event->mval[1] - t->imval[1]) > 10))
 					t->state = TRANS_CONFIRM;
 				else
 					// Once the key is released we can never drag again! At least until the next operator invoke.

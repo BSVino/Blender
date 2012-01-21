@@ -413,7 +413,6 @@ static int transform_exec(bContext *C, wmOperator *op)
 	t = op->customdata;
 
 	t->options |= CTX_AUTOCONFIRM;
-	t->flag |= T_DRAGGING;
 
 	transformApply(C, t);
 
@@ -428,11 +427,16 @@ static int transform_exec(bContext *C, wmOperator *op)
 
 static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	TransInfo *t;
+
 	if (!transformops_data(C, op, event))
 	{
 		G.moving = 0;
 		return OPERATOR_CANCELLED;
 	}
+
+	t = op->customdata;
+	t->flag |= T_DRAGGING;
 
 	if(RNA_property_is_set(op->ptr, "value")) {
 		return transform_exec(C, op);
@@ -518,6 +522,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	//RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	RNA_def_boolean(ot->srna, "tap_confirm", 0, "Tap To Confirm", "Tap the operator's key or button again to confirm the transformation");
+	RNA_def_boolean(ot->srna, "drag_drop", 0, "Drag And Drop", "Hold the operator's key or button to drag, release to confirm the transformation");
 }
 
 void TRANSFORM_OT_translate(struct wmOperatorType *ot)
