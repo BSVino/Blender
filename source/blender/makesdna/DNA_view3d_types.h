@@ -196,7 +196,8 @@ typedef struct View3D {
 	char gridflag;
 
 	/* transform widget info */
-	char twtype, twmode, twflag, pad2[2];
+	char twtype, twmode, twflag;
+	short twhighlight;
 	
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw_transp;

@@ -57,6 +57,7 @@
 
 void view3d_operatortypes(void)
 {
+	WM_operatortype_append(VIEW3D_OT_mouseover);
 	WM_operatortype_append(VIEW3D_OT_rotate);
 	WM_operatortype_append(VIEW3D_OT_move);
 	WM_operatortype_append(VIEW3D_OT_zoom);
@@ -139,6 +140,8 @@ void view3d_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 	
+	WM_keymap_add_item(keymap, "VIEW3D_OT_mouseover", MOUSEMOVE, 0, 0, 0);
+
 	WM_keymap_add_item(keymap, "VIEW3D_OT_rotate", MOUSEPAN, 0, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_rotate", MOUSEROTATE, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_move", MOUSEPAN, 0, 0, 0);

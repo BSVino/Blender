@@ -158,6 +158,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags);
 
 int BIF_do_manipulator(struct bContext *C, struct wmEvent *event, struct wmOperator *op);
 void BIF_draw_manipulator(const struct bContext *C);
+int BIF_test_manipulator_mouseover(const struct bContext *C, struct wmEvent *event);
 
 /* Snapping */
 

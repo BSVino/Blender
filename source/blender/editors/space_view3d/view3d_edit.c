@@ -515,6 +515,41 @@ static void viewops_data_free(bContext *C, wmOperator *op)
 		ED_region_tag_redraw(ar);
 }
 
+static int viewmouseover_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (!!BIF_test_manipulator_mouseover(C, event)) {
+		ARegion *ar= CTX_wm_region(C);
+		ED_region_tag_redraw(ar);
+	}
+
+	return OPERATOR_PASS_THROUGH;
+}
+
+static int viewmouseover_poll(bContext *C)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+
+	if (v3d->twtype & (V3D_MANIP_TRANSLATE|V3D_MANIP_ROTATE|V3D_MANIP_SCALE))
+		return 1;
+
+	return 0;
+}
+
+void VIEW3D_OT_mouseover(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mouseover (internal)";
+	ot->description = "Check for mouseover events";
+	ot->idname= "VIEW3D_OT_mouseover";
+
+	/* api callbacks */
+	ot->invoke= viewmouseover_invoke;
+	ot->poll= viewmouseover_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_INTERNAL;
+}
+
 /* ************************** viewrotate **********************************/
 
 static const float thres = 0.93f; //cos(20 deg);
