@@ -83,22 +83,30 @@
 
 /* return codes for select, and drawing flags */
 
-#define MAN_TRANS_X		1
-#define MAN_TRANS_Y		2
-#define MAN_TRANS_Z		4
-#define MAN_TRANS_C		7
+#define MAN_TRANS_X		(1<<0)
+#define MAN_TRANS_Y		(1<<1)
+#define MAN_TRANS_Z		(1<<2)
+#define MAN_TRANS_C		(MAN_TRANS_X|MAN_TRANS_Y|MAN_TRANS_Z)
 
-#define MAN_ROT_X		8
-#define MAN_ROT_Y		16
-#define MAN_ROT_Z		32
-#define MAN_ROT_V		64
-#define MAN_ROT_T		128
-#define MAN_ROT_C		248
+#define MAN_ROT_X		(1<<3)
+#define MAN_ROT_Y		(1<<4)
+#define MAN_ROT_Z		(1<<5)
+#define MAN_ROT_V		(1<<6)
+#define MAN_ROT_T		(1<<7)
+#define MAN_ROT_C		(MAN_ROT_X|MAN_ROT_Y|MAN_ROT_Z|MAN_ROT_V|MAN_ROT_T)
 
-#define MAN_SCALE_X		256
-#define MAN_SCALE_Y		512
-#define MAN_SCALE_Z		1024
-#define MAN_SCALE_C		1792
+#define MAN_SCALE_X		(1<<8)
+#define MAN_SCALE_Y		(1<<9)
+#define MAN_SCALE_Z		(1<<10)
+#define MAN_SCALE_C		(MAN_SCALE_X|MAN_SCALE_Y|MAN_SCALE_Z)
+
+#define MAN_TRANS_XY	(1<<11)
+#define MAN_TRANS_YZ	(1<<12)
+#define MAN_TRANS_XZ	(1<<13)
+
+#define MAN_SCALE_XY	(1<<14)
+#define MAN_SCALE_YZ	(1<<15)
+#define MAN_SCALE_XZ	(1<<16)
 
 /* color codes */
 
@@ -1247,6 +1255,14 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_Z);
 		manipulator_setcolor(v3d, 'Z', colcode, axisBlendAngle(rv3d->twangle[2]), MAN_SCALE_Z);
 		drawsolidcube(cusize);
+
+		glPushMatrix();
+		glTranslatef(0.0, 0.0, -dz*0.3f);
+		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_XZ);
+		manipulator_setcolor(v3d, 'Z', colcode, axisBlendAngle(rv3d->twangle[2]), MAN_SCALE_XZ);
+		glScalef(1.5, 0.3, 1.5);
+		drawsolidcube(cywid);
+		glPopMatrix();
 	}
 	/* X cube */
 	glTranslatef(dz, 0.0, -dz);
@@ -1254,6 +1270,14 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_X);
 		manipulator_setcolor(v3d, 'X', colcode, axisBlendAngle(rv3d->twangle[0]), MAN_SCALE_X);
 		drawsolidcube(cusize);
+
+		glPushMatrix();
+		glTranslatef(-dz*0.3f, 0.0, 0.0);
+		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_XY);
+		manipulator_setcolor(v3d, 'X', colcode, axisBlendAngle(rv3d->twangle[0]), MAN_SCALE_XY);
+		glScalef(1.5, 1.5, 0.3);
+		drawsolidcube(cywid);
+		glPopMatrix();
 	}
 	/* Y cube */
 	glTranslatef(-dz, dz, 0.0);
@@ -1261,6 +1285,14 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_Y);
 		manipulator_setcolor(v3d, 'Y', colcode, axisBlendAngle(rv3d->twangle[1]), MAN_SCALE_Y);
 		drawsolidcube(cusize);
+
+		glPushMatrix();
+		glTranslatef(0.0, -dz*0.3f, 0.0);
+		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_YZ);
+		manipulator_setcolor(v3d, 'Y', colcode, axisBlendAngle(rv3d->twangle[1]), MAN_SCALE_YZ);
+		glScalef(0.3, 1.5, 1.5);
+		drawsolidcube(cywid);
+		glPopMatrix();
 	}
 
 	/* if shiftkey, center point as last, for selectbuffer order */
@@ -1359,6 +1391,14 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int UNUS
 		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_Z);
 		manipulator_setcolor(v3d, 'Z', colcode, axisBlendAngle(rv3d->twangle[2]), MAN_TRANS_Z);
 		draw_cone(qobj, cylen, cywid);
+
+		glPushMatrix();
+		glTranslatef(0.0, 0.0, -dz*0.3f);
+		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_XZ);
+		manipulator_setcolor(v3d, 'Z', colcode, axisBlendAngle(rv3d->twangle[2]), MAN_TRANS_XZ);
+		glScalef(1.5, 0.3, 1.5);
+		drawsolidcube(cywid);
+		glPopMatrix();
 	}
 	/* X Cone */
 	glTranslatef(dz, 0.0, -dz);
@@ -1368,6 +1408,14 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int UNUS
 		manipulator_setcolor(v3d, 'X', colcode, axisBlendAngle(rv3d->twangle[0]), MAN_TRANS_X);
 		draw_cone(qobj, cylen, cywid);
 		glRotatef(-90.0, 0.0, 1.0, 0.0);
+
+		glPushMatrix();
+		glTranslatef(-dz*0.3f, 0.0, 0.0);
+		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_XY);
+		manipulator_setcolor(v3d, 'X', colcode, axisBlendAngle(rv3d->twangle[0]), MAN_TRANS_XY);
+		glScalef(1.5, 1.5, 0.3);
+		drawsolidcube(cywid);
+		glPopMatrix();
 	}
 	/* Y Cone */
 	glTranslatef(-dz, dz, 0.0);
@@ -1376,6 +1424,15 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int UNUS
 		glRotatef(-90.0, 1.0, 0.0, 0.0);
 		manipulator_setcolor(v3d, 'Y', colcode, axisBlendAngle(rv3d->twangle[1]), MAN_TRANS_Y);
 		draw_cone(qobj, cylen, cywid);
+		glRotatef(90.0, 1.0, 0.0, 0.0);
+
+		glPushMatrix();
+		glTranslatef(0.0, -dz*0.3f, 0.0);
+		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_YZ);
+		manipulator_setcolor(v3d, 'Y', colcode, axisBlendAngle(rv3d->twangle[1]), MAN_TRANS_YZ);
+		glScalef(0.3, 1.5, 1.5);
+		drawsolidcube(cywid);
+		glPopMatrix();
 	}
 
 	gluDeleteQuadric(qobj);
@@ -1670,7 +1727,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 		drawflags= manipulator_selectbuf(sa, ar, event->mval, 0.2f*(float)U.tw_hotspot);
 		if(drawflags==0) drawflags= val;
 
-		if (drawflags & MAN_TRANS_C) {
+		if (drawflags & (MAN_TRANS_C|MAN_TRANS_XY|MAN_TRANS_YZ|MAN_TRANS_XZ)) {
 			switch(drawflags) {
 			case MAN_TRANS_C:
 				break;
@@ -1698,12 +1755,24 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				else
 					constraint_axis[2] = 1;
 				break;
+			case MAN_TRANS_XY:
+				constraint_axis[0] = 1;
+				constraint_axis[1] = 1;
+				break;
+			case MAN_TRANS_YZ:
+				constraint_axis[1] = 1;
+				constraint_axis[2] = 1;
+				break;
+			case MAN_TRANS_XZ:
+				constraint_axis[0] = 1;
+				constraint_axis[2] = 1;
+				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 			WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_DEFAULT, op->ptr);
 			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_translate", 0), event, op->ptr, NULL, FALSE);
 		}
-		else if (drawflags & MAN_SCALE_C) {
+		else if (drawflags & (MAN_SCALE_C|MAN_SCALE_XY|MAN_SCALE_YZ|MAN_SCALE_XZ)) {
 			switch(drawflags) {
 			case MAN_SCALE_X:
 				if(shift) {
@@ -1728,6 +1797,18 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				}
 				else
 					constraint_axis[2] = 1;
+				break;
+			case MAN_SCALE_XY:
+				constraint_axis[0] = 1;
+				constraint_axis[1] = 1;
+				break;
+			case MAN_SCALE_YZ:
+				constraint_axis[1] = 1;
+				constraint_axis[2] = 1;
+				break;
+			case MAN_SCALE_XZ:
+				constraint_axis[0] = 1;
+				constraint_axis[2] = 1;
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
