@@ -57,13 +57,13 @@ To-do List
 * ~~If the user is in grab/scale/rotate mode and presses the button again, it does nothing.~~
 * ~~If the user holds down a grab/scale/rotate tool, letting go does not finish the task.~~
 * There is a + to open the "n" control panel but no - to close it.
-* Clicking in empty space does not unselect.
-* Right click to select is default. Left click should select.
+* ~~Clicking in empty space does not unselect.~~ - Implemented with the changes to circle select.
+* ~~Right click to select is default. Left click should select.~~ - Implemented with the interaction config.
 * Right click should bring up a context menu.
-* Rotate around selection is not default.
-* There is no drag select or touch select.
+* ~~Rotate around selection is not default.~~ - Implemented with the interaction config.
+* ~~There is no drag select or touch select.~~ - Implemented with the changes to circle select.
 * ~~Double click on an edge should select an edge loop.~~ - Implemented with a configuration binding.
-* Python binding helpers are everywhere and irrelevant to most users.
+* ~~Python binding helpers are everywhere and irrelevant to most users.~~ - Implemented with the interaction config.
 * No BEVEL TOOL [(Possible implementation?)](http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/Bevel)
 * Right clicking does not offer delete and sometimes rename
 * Primary selection color is white, invisible when dealing with white things.
@@ -78,8 +78,8 @@ To-do List
 * Clicking a second time on an object selects the object behind it
 * Selecting a poly/edge/vert in uv should highlight it in 3d and vice versa
 * Complete freezeup while generating AO, non-obvious progress bar
-* No highlight while hovering the mouse over a vert/edge/face/tool handle
-* No way to move something in two dimensions but not a third without keyboard shortcuts
+* No highlight while hovering the mouse over a vert/edge/face/~~tool handle~~
+* ~~No way to move something in two dimensions but not a third without keyboard shortcuts~~
 * If only one texture layer is active and it is a multiply/overlay/etc layer, don't black everything out.
 * Dragging a separator all the way over does not close it.
 * If the user is looking through a camera, the rotate and zoom controls should control the camera directly.
