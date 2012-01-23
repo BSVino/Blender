@@ -3,6 +3,7 @@ user_preferences = bpy.context.user_preferences
 
 user_preferences.view.show_tooltips_python = False
 user_preferences.view.use_rotate_around_active = True
+user_preferences.view.hide_3d_cursor = True
 user_preferences.edit.use_drag_immediately = False
 user_preferences.edit.use_insertkey_xyz_to_rgb = True
 user_preferences.inputs.invert_mouse_zoom = False

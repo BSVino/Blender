@@ -534,6 +534,9 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	int mx, my, co[2];
 	int flag;
+
+	if (U.flag & USER_HIDE_3DCURSOR)
+		return;
 	
 	/* we dont want the clipping for cursor */
 	flag= v3d->flag;

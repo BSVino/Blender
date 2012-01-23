@@ -223,6 +223,7 @@ class USERPREF_PT_interface(Panel):
         #col.label(text="Open Toolbox Delay:")
         #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
+        col.prop(view, "hide_3d_cursor")
         col.prop(view, "show_manipulator")
         sub = col.column()
         sub.active = view.show_manipulator

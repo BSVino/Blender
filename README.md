@@ -87,7 +87,7 @@ To-do List
 * An FPS style WASD camera, perhaps with Q and E for rolling. [(Some Python code for it)](http://www.mail-archive.com/bf-committers@blender.org/msg06611.html)
 * Canceling extrude should leave the mesh unchanged and not leave duplicate geometry.
 * The functionality of the "Origin" button on the toolbar does not appear to exist in the "Object" menu.
-* The 3D cursor is an advanced feature and should be hidden by default.
+* ~~The 3D cursor is an advanced feature and should be hidden by default.~~ - Implemented with the interaction config.
 
 ### Workflow Improvement Wishlist
 

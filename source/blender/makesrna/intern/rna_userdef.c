@@ -2291,7 +2291,12 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_range(prop, 4, 10);
 	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Lamp origin display");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-	
+
+	/* 3D Cursor */
+	prop= RNA_def_property(srna, "hide_3d_cursor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_HIDE_3DCURSOR);
+	RNA_def_property_ui_text(prop, "Hide 3D Cursor", "Hide the 3D cursor in the 3D view area");
+
 	/* View2D Grid Displays */
 	prop= RNA_def_property(srna, "view2d_grid_spacing_min", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "v2d_min_gridsize");
